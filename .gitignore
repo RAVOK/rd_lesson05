@@ -1,6 +1,7 @@
 #env
 /config/.env.local
 /config/.env.prod
+src/database/migration-data-source.ts
 
 # compiled output
 /dist

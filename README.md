@@ -1,3 +1,42 @@
+1.3. Захист від oversell (конкурентність)
+  pessimistic locking - най простіше
+1.4. Обробка помилок
+
+## Error Handling
+
+- Недостатній stock: 409 Conflict (бізнес-помилка).
+- Duplicate idempotencyKey: повертається існуюче замовлення з кодом 200 OK.
+- Інші помилки: rollback транзакції та 500 Internal Server Error.
+
+2.1 Обираємо “гарячий” запит
+    SELECT o.id, o.total, o.created_at, u.name, u.email,
+          i.quantity, i.price, p.name, p.price
+    FROM site.s_order o
+    JOIN site.s_user u ON u.id = o.user_id
+    JOIN site.s_order_item i ON i.order_id = o.id
+    JOIN site.s_product p ON p.id = i.product_id
+    WHERE o.created_at >= '2026-01-01'
+    ORDER BY o.created_at DESC;
+        використовується Seq Scan по s_order, бо немає індексу на created_at.
+        -- індекс для швидкої фільтрації замовлень за датою
+        CREATE INDEX idx_order_created_at ON site.s_order(created_at);
+        -- індекс для швидкого пошуку items по order_id
+        CREATE INDEX idx_order_item_order_id ON site.s_order_item(order_id);
+        -- індекс для швидкого пошуку продуктів по id
+        CREATE INDEX idx_product_id ON site.s_product(id);
+
+Оптимізаці: було 140мс, стало 50мс
+
+
+http://localhost:4000/products
+http://localhost:4000/users       http://localhost:4000/users/2
+http://localhost:4000/orders
+http://localhost:4000/order-items
+
+Migration:
+npx ts-node ./node_modules/typeorm/cli.js migration:generate src/migrations/InitSchema -d src/database/migration-data-source.ts
+
+
 МЕТА
 
 Проєкт побудований на NestJS з акцентом на модульність, масштабованість та зрозумілість. Основна ідея архітектури полягає в тому, щоб кожна бізнес‑область була ізольована в окремому модулі, а конфігурація середовища була централізованою та легко керованою. Це дозволяє швидко розширювати систему, підтримувати її у довгостроковій перспективі та робити зрозумілою для нових розробників.

@@ -1,12 +1,12 @@
 export class ResponseDTO<T> {
-  user: T[];
+  users: T[];
   error: {
     errorCode: number;
     errorMessage: string;
   };
 
-  constructor(user: T[] = [], errorCode = 0, errorMessage = '') {
-    this.user = user;
+  constructor(users: T[] = [], errorCode = 0, errorMessage = '') {
+    this.users = users;
     this.error = { errorCode, errorMessage };
   }
 }
